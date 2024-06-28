@@ -1,123 +1,128 @@
 class Title {
+    #title;
 
-    constructor(name) {
-        this.name = name;
+    constructor(title) {
+        this.#title = title;
     }
 
-    static origin() {
-        console.log("This material is property of CIC library")
+    getTitle() {
+        return this.#title;
     }
-    borrow(userId, returnDate) {
-        console.log(this.name + " is being borrowed by User: " + userId + " to be returned by " + returnDate);
-    }
-
-
-}
-
-class Magazine extends Title {
-    constructor(name, issue) {
-        super(name);
-        this.issue = issue;
+    updateTitle(title) {
+        this.#title = title;
     }
 
-    howOld(issue) {
-        // Parse the input date string
-        const [month, year] = issue.split(' ');
-        const inputDate = new Date(`${month} 1, ${year}`);
-
-        // Get current date
-        const currentDate = new Date();
-
-        // Calculate the difference in months
-        let months = (currentDate.getFullYear() - inputDate.getFullYear()) * 12;
-
-        console.log("this issue is " + months + " old");
+    static copyright() {
+        console.log("This material belong to the CIC Library")
     }
 }
 
 class Book extends Title {
-    constructor(name, author) {
-        super(name);
-        this.author = author;
-    }
-    read() {
-        console.log(`reading ${this.name}`);
+    #author;
+
+    constructor(title, author) {
+        super(title);
+        this.#author = author;
     }
 
+    getAuthor() {
+        return this.#author;
+    }
+    updateAuthor(author) {
+        this.#author = author;
+    }
+    toJSON(){
+        return {title: this.getTitle(), author: this.getAuthor()};
+    }
+}
+
+class Magazine extends Title {
+    #issue;
+
+    constructor(title, issue) {
+        super(title);
+        this.#issue = issue;
+    }
+    getIssue() {
+        return this.#issue;
+    }
+    updateIssue(issue) {
+        this.#issue = issue;
+    }
+    toJSON(){
+        return {title: this.getTitle(), issue: this.getIssue()};
+    }
 }
 
 class Movie extends Title {
-    #classification;
+    #year;
 
-    constructor(name, year) {
-        super(name);
-        this.year = year;
+    constructor(title, year) {
+        super(title);
+        this.#year = year;
     }
-
-    play() {
-        console.log(`${this.name} is playing... `);
+    getYear() {
+        return this.#year;
     }
-    setClassification(classification) {
-        this.#classification = classification;
+    updateYear(year) {
+        this.#year = year;
     }
-    getClassification() {
-        return this.#classification;
-    }
-
-}
-
-class Library {
-    bd = {
-        titles: {},
-    }
-    constructor() {
-    }
-
-    createEntry(id, title){
-        this.bd.titles[id] = title;
-    }
-    readEntry(id){
-        return this.bd.titles[id];
-    }
-    updateEntry(id, title) {
-        return this.bd.titles[id] = title;
-    }
-    deleteEntry(id) {
-        delete this.bd.titles[id]
+    toJSON(){
+        return {title: this.getTitle(), year: this.#year};
     }
 }
 
-const magazine = new Magazine("National Geographic", "June 2023");
+
 const book = new Book("1984", "George Orwell");
+const magazine = new Magazine("National Geographic", "June 2023");
 const movie = new Movie("Inception", 2010);
 
-console.log(magazine);  // Magazine { name: 'National Geographic', issue: 'June 2023' }
-console.log(book);      // Book { name: '1984', author: 'George Orwell' }
-console.log(movie);     // Movie { name: 'Inception', year: 2010 }
 
-book.borrow("1829", "June 23");
-magazine.howOld("June 2023");
-movie.play();
-book.read();
-Magazine.origin();
-movie.setClassification("PG-13");
-console.log(movie.getClassification());
+class Library {
+    db;
+
+    constructor() {
+        this.db = {}
+    }
+    constructor(filename) {
+        this.db = JSON.parse()
+    }
+
+    createEntry(id, title) {
+        this.db[id] = title.toJSON();
+    }
+
+    readEntry(id) {
+        return this.db[id];
+    }
+
+    updateEntry(id, name) {
+        const s  = JSON.stringify(this.db[id]);
+        let ob = JSON.parse(s);
+        ob.title = name;
+        this.db[id] = ob;
+    }
+
+    deleteEntry(id) {
+        delete this.db[id];
+    }
+
+
+
+}
 
 const library = new Library();
+library.createEntry(5677, book);
+library.createEntry(5678, magazine);
+library.createEntry(5679, movie);
 
-// Create
-library.createEntry("8977", book);
-library.createEntry("8978", magazine);
-library.createEntry("8979", movie);
+console.log(library.readEntry(5678));
+library.updateEntry(5679, "sherk");
+library.deleteEntry(5677);
 
-// Read
-const entry = library.readEntry("8977");
-console.log(entry)
 
-// Update
-library.updateEntry("8979", magazine);
+const fs = require('fs');
 
-// Delete
-library.deleteEntry("8978");
-
-console.log("fi");
+fs.writeFile("db.json",JSON.stringify(library.db,null, 2), (error) => {
+    if (error) throw error;
+});
